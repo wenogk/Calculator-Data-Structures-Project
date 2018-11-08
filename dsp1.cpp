@@ -131,6 +131,7 @@ int main(int count, char * args[]) {
 	   afterEquals = ReplaceString(afterEquals,"mod","$"); //some of the textfiles use a "mod" operator so I'm just using $ for it to make it easier to differentiate variables from operators
 	   if(debugMode) cout<<variableName<<"="<<afterEquals<<endl;
 	   //REPLACE LINE WITH VARS FROM MAP
+		  if(!variableMap.empty()) {
 		map<string, int>::iterator it = variableMap.begin();
 		if(debugMode) cout<<"----- Gonna iterate through map and find and replace all keys with values, in " << variableName <<" ----"<<endl;
 	while (it != variableMap.end())
@@ -141,6 +142,7 @@ int main(int count, char * args[]) {
 		it++;
 	}
 	if(debugMode) cout << "---- End map iteration ----" <<endl;
+		  }
 		//END REPLACE LINE WITH VARS
 	  if((!isVariablePresent(afterEquals))&&(isOperatorPresent(afterEquals))) { //no variables in expression but expression has operations 
 	  //	cout << variableName << " has no other vars in it, so can add to map" <<endl;
