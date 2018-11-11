@@ -12,51 +12,59 @@ using namespace std;
 bool debugMode=true;
 bool isoperator(char); //Helper method which checks if the input char is an operator
 
-int evaluate(string y)		//Method which will evaluate a PostfixExpression and return the result
-{	
-	stack <float> stackA;
-	int length = y.size(); 
-	for(int i = 0; i < length; i++) {
-		if(isoperator(y[i])) {
-			float first=stackA.top();
-			stackA.pop();
-			float second=stackA.top();
-			stackA.pop();
-			float result;
-			//cout<< "res: " << first << endl;
-			 if(y[i]=='+') {
-			 	result = first + second;
-			 }
-			 if(y[i]=='-') {
-			 	result = second - first;
-			 }
-			 if(y[i]=='*') {
-			 	result = first * second;
-			 }
-			 if(y[i]=='/') {
-			 	result = second / first;
-			 }
-			 if(y[i]=='^') {
-			 	result = pow(second,first);
-			 }
-			 if(y[i]=='$') {
-			 	result = result; //make it find the mod 
-			 }
-			 stackA.push(result);
-		} else {
-			//cout<<"PUSHING: " << y[i] <<endl;
 
-			stackA.push(y[i]);
-		}
-	}
-	return int(stackA.top());
-	//1. Create a stack (e.g. of type float) to store the operands
-	//2. Scan the postfix expression from left to right for every element
-	//	 a. if the element is an operand push it to the stack
-	//   b. if the element is an operator pop 2 elements from the stack, 
-	//      apply the operator on it and push the result back to the stack
-	//3. return the value from the top of the stack (i.e. the final answer)	
-}
+class node 
+{ 
+public: 
+    string info; 
+    node *left, *right; 
+    node(string x) 
+    { 
+        info = x; 
+    } 
+}; 
+  
+// Utility function to return the integer value 
+// of a given string 
+int toInt(string s) 
+{ 
+    int num = 0; 
+    for (int i=0; i<s.length();  i++) 
+        num = num*10 + (int(s[i])-48); 
+    return num; 
+} 
+  
+// This function receives a node of the syntax tree 
+// and recursively evaluates it 
+int eval(node* root) 
+{ 
+    // empty tree 
+    if (!root) 
+        return 0; 
+  
+    // leaf node i.e, an integer 
+    if (!root->left && !root->right) 
+        return toInt(root->info); 
+  
+    // Evaluate left subtree 
+    int l_val = eval(root->left); 
+  
+    // Evaluate right subtree 
+    int r_val = eval(root->right); 
+  
+    // Check which operator to apply 
+    if (root->info=="+") 
+        return l_val+r_val; 
+  
+    if (root->info=="-") 
+        return l_val-r_val; 
+  
+    if (root->info=="*") 
+        return l_val*r_val; 
+  
+    return l_val/r_val; 
+} 
+
 
 bool isoperator(char ch)
 {
@@ -66,6 +74,7 @@ bool isoperator(char ch)
 		return false;
 
 }
+
 bool isVariablePresent(string value) { //method to check if there are any other variables used in an individual variable declaration
 	//the string input value would be the part after the equals for every variable declaration statement
 	 int valueSize = value.size();  // size of the input string
@@ -104,79 +113,6 @@ string ReplaceString(std::string subject, const std::string& search,
     }
     return subject;
 }
-int main(int count, char * args[]) {
-	if(debugMode) cout <<"**********DEBUG MODE IS ON,IT JUST PRINTS WHAT IT DOES WHICH MAKES IT EASIER TO UNDERSTAND, TO SWITCH OFF SET debugMode variable to false in file******"<<endl;
-	string filename="filex.txt";
-	ifstream infile;
-	ifstream lineNum;
-	map<string, int> variableMap;  
-	lineNum.open(filename);
-	int lines=0;
-	string str1;
-  while (getline(lineNum, str1)) { 
-  	lines++;
-  }
-  if(debugMode) cout<<"-------------"<< lines << " lines of vars in text file -------------"<<endl;
-  lineNum.close();
-  while(variableMap.size()!=lines) {
-		infile.open(filename);
-		  string lineString;
-	  while (getline(infile, lineString)) {
-	  	string str=lineString;
-	   string variableName = str.substr(0, str.find("=")-1); // - 1 to remove that space before the =
-	   int varSize = str.size(); 
-	   string afterEquals= str.substr(str.find("=")+1,varSize);
-	   afterEquals = ReplaceString(afterEquals,";","");
-	   afterEquals = ReplaceString(afterEquals," ","");
-	   afterEquals = ReplaceString(afterEquals,"mod","$"); //some of the textfiles use a "mod" operator so I'm just using $ for it to make it easier to differentiate variables from operators
-	   if(debugMode) cout<<variableName<<"="<<afterEquals<<endl;
-	   //REPLACE LINE WITH VARS FROM MAP
-		  if(!variableMap.empty()) {
-		map<string, int>::iterator it = variableMap.begin();
-		if(debugMode) cout<<"----- Gonna iterate through map and find and replace all keys with values, in " << variableName <<" ----"<<endl;
-	while (it != variableMap.end())
-	{
-		if(debugMode) cout<< "replacing " << it->first << " with " << to_string(it->second) << " in " <<variableName<<"="<<afterEquals<<endl; 
-		afterEquals  = ReplaceString(afterEquals, it->first, to_string(it->second));
-		if(debugMode) cout<<"Result of replacement: " <<variableName<<"="<<afterEquals<<endl;
-		it++;
-	}
-	if(debugMode) cout << "---- End map iteration ----" <<endl;
-		  }
-		//END REPLACE LINE WITH VARS
-	  if((!isVariablePresent(afterEquals))&&(isOperatorPresent(afterEquals))) { //no variables in expression but expression has operations 
-	  //	cout << variableName << " has no other vars in it, so can add to map" <<endl;
-	  	if(debugMode) cout<< "Inserting and calculating" << variableName << " = " << afterEquals << " into map (99 cus "<< variableName <<" requires calculation and evaluate() method not implemented to actually calculate lol)"<<endl;
-	   //if (debugMode) {cout<< "Insertion and Calculation occuring: " << afterEquals << "=" << to_string(evaluate(afterEquals)) <<endl;}
-	   variableMap.insert(make_pair(variableName, 99)); //change 99 to evaluate(afterEquals) when evaluate() function is implemented
-
-	} else if((!isVariablePresent(afterEquals))&&(!isOperatorPresent(afterEquals))) { //no variables in expression and no operations, just number
-		if(debugMode) cout<< "Inserting" << variableName << " = " << afterEquals <<" into map (direct value cus variable has no operation required, is just a number)"<<endl;
-		
-		variableMap.insert(make_pair(variableName, stoi(afterEquals)));
-	}
-	   //cout << "variableName: " << variableName <<endl;
-	  }
-	  
-	  infile.close();
-	    //REPLACE LINE WITH VARS FROM MAP
-		
-		map<string, int>::iterator it = variableMap.begin();
-		if(debugMode) cout<<"-----------"<<endl;
-	while (it != variableMap.end())
-	{
-		cout<< it->first << " = " << it->second <<endl;
-		it++;
-	}
-		//END REPLACE LINE WITH VARS
-}
-	
-  return EXIT_SUCCESS;
-
-	}
-
-
-
 
 
 int convertOpToInt (char ch)
@@ -193,8 +129,6 @@ bool isleq(char opA, char opB)
 {
 	return (convertOpToInt(opA)<=convertOpToInt(opB));
 }
-
-// Helper Method which converts an Infix Notaiton to a postfix notation
 string infix2postfix(string x)
 {
 	stack <char> mystack;
@@ -245,3 +179,142 @@ string infix2postfix(string x)
 	}
 	return y;
 }
+
+int evaluate(string y)		//Method which will evaluate a PostfixExpression and return the result
+{
+    cout <<  "EVALUATING:"<<y<<endl;
+	//1. Create a stack (e.g. of type float) to store the operands
+	stack <float> mystack;
+	//2. Scan the postfix expression from left to right for every element
+	for (int i = 0; i < y.length(); i++){
+	//	 a. if the element is an operand push it to the stack
+	    if (isdigit(y[i])){
+	        mystack.push(int(y[i]) - 48);
+	    }
+	    //   b. if the element is an operator pop 2 elements from the stack, 
+	    //      apply the operator on it and push the result back to the stack
+	    else{
+	        float x1 = mystack.top();
+	        mystack.pop();
+	        float x2 = mystack.top();
+	        mystack.pop();
+	        int x3;
+            if (y[i] == '+') x3 = x2+x1;
+            if (y[i] == '-') x3 = x2-x1;
+            if (y[i] == '*') x3 = x2*x1;
+            if (y[i] == '/') x3 = x2/x1;
+            if (y[i] == '^') x3 = pow(x2,x1); 
+	        mystack.push(x3);
+	    }    
+	}
+	//3. return the value from the top of the stack (i.e. the final answer)	
+	return mystack.top();
+}
+
+/*
+int evaluate(string y)		//Method which will evaluate a PostfixExpression and return the result
+{
+
+	
+	node root,t1,t2;
+	string postfix = infix2postfix(y);
+	int size = postfix.size();
+	stack<node> st; 
+	for (int i=0; i<size; i++) 
+    { 
+
+    	if (!isoperator(postfix[i])) 
+        { 
+            root = new node(postfix[i]); 
+            st.push(t); 
+        } 
+        else {
+        	 node root2 = new node(postfix[i]);
+
+        }
+    }
+    //if (debugMode) { cout <<"Evaluating: "<< y<<endl;}
+	//1. Create a stack (e.g. of type float) to store the operands
+	return 99;
+	
+}*/
+
+
+
+int main(int count, char * args[]) {
+	if(debugMode) cout <<"**********DEBUG MODE IS ON,IT JUST PRINTS WHAT IT DOES WHICH MAKES IT EASIER TO UNDERSTAND, TO SWITCH OFF SET debugMode variable to false in file******"<<endl;
+	string filename="filex.txt";
+	ifstream infile;
+	ifstream lineNum;
+	map<string, int> variableMap;  
+	lineNum.open(filename);
+	int lines=0;
+	string str1;
+  while (getline(lineNum, str1)) { 
+  	lines++;
+  }
+  if(debugMode) cout<<"-------------"<< lines << " lines of vars in text file -------------"<<endl;
+  lineNum.close();
+  while(variableMap.size()!=lines) {
+
+		infile.open(filename);
+		  string lineString;
+	  while (getline(infile, lineString)) {
+	  	string str=lineString;
+	   string variableName = str.substr(0, str.find("=")-1); // - 1 to remove that space before the =
+	   int varSize = str.size(); 
+	   string afterEquals= str.substr(str.find("=")+1,varSize);
+	   afterEquals = ReplaceString(afterEquals,";","");
+	   afterEquals = ReplaceString(afterEquals," ","");
+	   afterEquals = ReplaceString(afterEquals,"mod","$"); //some of the textfiles use a "mod" operator so I'm just using $ for it to make it easier to differentiate variables from operators
+	   if(debugMode) cout<<variableName<<"="<<afterEquals<<endl;
+	   //REPLACE LINE WITH VARS FROM MAP
+		  if(!variableMap.empty()) {
+		map<string, int>::iterator it = variableMap.begin();
+		if(debugMode) cout<<"----- Gonna iterate through map and find and replace all keys with values, in " << variableName <<" ----"<<endl;
+	while (it != variableMap.end())
+	{
+		if(debugMode) cout<< "replacing " << it->first << " with " << to_string(it->second) << " in " <<variableName<<"="<<afterEquals<<endl; 
+		afterEquals  = ReplaceString(afterEquals, it->first, to_string(it->second));
+		if(debugMode) cout<<"Result of replacement: " <<variableName<<"="<<afterEquals<<endl;
+		it++;
+	}
+	if(debugMode) cout << "---- End map iteration ----" <<endl;
+		  }
+		//END REPLACE LINE WITH VARS
+	  if((!isVariablePresent(afterEquals))&&(isOperatorPresent(afterEquals))) { //no variables in expression but expression has operations 
+	  //	cout << variableName << " has no other vars in it, so can add to map" <<endl;
+	  	//if(debugMode) cout<< "Inserting and calculating" << variableName << " = " << afterEquals << " into map (99 cus "<< variableName <<" requires calculation and evaluate() method not implemented to actually calculate lol)"<<endl;
+	  // if (debugMode) {cout<< "Insertion and Calculation occuring: " << afterEquals << "=" << to_string(evaluate(afterEquals)) <<endl;}
+	   variableMap.insert(make_pair(variableName, evaluate(infix2postfix(afterEquals)))); //change 99 to evaluate(afterEquals) when evaluate() function is implemented
+
+	} else if((!isVariablePresent(afterEquals))&&(!isOperatorPresent(afterEquals))) { //no variables in expression and no operations, just number
+		if(debugMode) cout<< "Inserting" << variableName << " = " << afterEquals <<" into map (direct value cus variable has no operation required, is just a number)"<<endl;
+		
+		variableMap.insert(make_pair(variableName, stoi(afterEquals)));
+	}
+	   //cout << "variableName: " << variableName <<endl;
+	  }
+	  
+	  infile.close();
+	    //REPLACE LINE WITH VARS FROM MAP
+		
+		map<string, int>::iterator it = variableMap.begin();
+		if(debugMode) cout<<"-----------"<<endl;
+	while (it != variableMap.end())
+	{
+		cout<< it->first << " = " << it->second <<endl;
+		it++;
+	}
+		//END REPLACE LINE WITH VARS
+}
+	//cout<<"TEST CALCULATION: "<< evaluate(infix2postfix("(6)+(4)")<< endl;
+  return EXIT_SUCCESS;
+
+	}
+
+
+
+
+
+// Helper Method which converts an Infix Notaiton to a postfix notation
