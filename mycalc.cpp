@@ -1,8 +1,11 @@
 #include <iostream>
 #include <fstream>
+#include <stack>
 #include "evaluate.h"
 
 using namespace std;
+
+bool areParanthesisBalanced(string expr);
 
 int main(int count, char * args[]) {
 
@@ -28,13 +31,40 @@ int main(int count, char * args[]) {
     
     //read from the input file expressions
     file.open(inputFile);
-    string str;
+    string line;
     string st;
-    while (getline(file, str)) {
-        if (str.size() > 0)
-            st = str.substr(0, str.size() - 1);
-            cout << st << endl;
+    string expression;
+    while (getline(file, line)) {
+        if (line.size() > 0)
+            //sanity check could be facilitated through the use of a stack 
+            //while reading in and processing each expression.
+            st = line.substr(0, line.size() - 2); //to get rid of the " ;" 
+            expression = st.substr(4, st.size());
+                if(areParanthesisBalanced(expression)){
+                    cout << st << " is balanced" << endl;
+                }
     }
     file.close();
   
 }
+
+
+
+//Sanity check function using stack
+bool areParanthesisBalanced(string expr) { 
+	stack <char> s; 
+	char x; 
+	// Traversing the Expression 
+	for (int i=0; i<expr.length(); i++) { 
+		if (expr[i]=='(') { 
+			// Push the element in the stack 
+			s.push(expr[i]); 
+		} 
+		else if (expr[i]==')'){
+		    if (s.top() == '(') s.pop();
+		    else return false;
+		}
+	} 
+	return (s.empty()); 
+} 
+
