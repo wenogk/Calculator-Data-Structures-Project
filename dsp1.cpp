@@ -5,6 +5,7 @@
 #include <map> 
 #include<cmath>
 #include<ctype.h>
+#include<math.h>
 using namespace std;
 
 
@@ -12,6 +13,38 @@ using namespace std;
 bool debugMode=true;
 bool isoperator(char); //Helper method which checks if the input char is an operator
 
+float eval(float x1, float x2, string sign) { 
+
+    if (sign == "+")//addition
+        return x1 + x2;
+  
+    if (sign == "-" && x1 != NULL)//subtraction
+        return x1 - x2;
+        
+    if (sign == "*")//multiplication
+        return x1 * x2;
+
+    if (sign == "/")//division
+        return x1 / x2;
+        
+    if (sign == "%")//integer division
+        return static_cast<int>(x1 / x2);
+        
+    if (sign == "mod")//modulus 
+        return (int)x1 % (int)x2;
+        
+    if (sign == "-" && x1 == NULL)//unary negative
+        return 0 - x2;        
+        
+    if (sign == "++" && x1 == NULL)//unary plus 
+        return x2 + 1;
+        
+    if (sign == "--" && x1 == NULL)//unary minus 
+        return x2 - 1;
+        
+    if (sign == "**" && x1 == NULL)//unary square 
+        return pow(2.0, x2);
+}
 
 class node 
 { 
@@ -199,12 +232,8 @@ int evaluate(string y)		//Method which will evaluate a PostfixExpression and ret
 	        float x2 = mystack.top();
 	        mystack.pop();
 	        int x3;
-            if (y[i] == '+') x3 = x2+x1;
-            if (y[i] == '-') x3 = x2-x1;
-            if (y[i] == '*') x3 = x2*x1;
-            if (y[i] == '/') x3 = x2/x1;
-            if (y[i] == '^') x3 = pow(x2,x1); 
-	        mystack.push(x3);
+            
+	        mystack.push(eval(x1,x2,y[i]));
 	    }    
 	}
 	//3. return the value from the top of the stack (i.e. the final answer)	
