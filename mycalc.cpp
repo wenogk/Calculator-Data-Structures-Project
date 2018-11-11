@@ -1,11 +1,14 @@
 #include <iostream>
 #include <fstream>
 #include <stack>
+#include <list> 
+#include <iterator> 
 #include "evaluate.h"
 
 using namespace std;
 
 bool areParanthesisBalanced(string expr);
+void showlist(list <string> g);
 
 int main(int count, char * args[]) {
 
@@ -29,11 +32,14 @@ int main(int count, char * args[]) {
     cout << "Input file is " << inputFile << endl;
     cout << "Output file is " << outputFile << endl;
     
-    //read from the input file expressions
+    
     file.open(inputFile);
     string line;
     string st;
     string expression;
+    list <string> expressionList;
+    
+    //read from the input file expressions
     while (getline(file, line)) {
         if (line.size() > 0)
             //sanity check could be facilitated through the use of a stack 
@@ -41,13 +47,13 @@ int main(int count, char * args[]) {
             st = line.substr(0, line.size() - 2); //to get rid of the " ;" 
             expression = st.substr(4, st.size());
                 if(areParanthesisBalanced(expression)){
-                    cout << st << " is balanced" << endl;
+                    //cout << st << " is balanced" << endl;
+                    expressionList.push_back(st);
                 }
     }
     file.close();
-  
+    showlist(expressionList);
 }
-
 
 
 //Sanity check function using stack
@@ -56,15 +62,25 @@ bool areParanthesisBalanced(string expr) {
 	char x; 
 	// Traversing the Expression 
 	for (int i=0; i<expr.length(); i++) { 
+	    //If the current character is a starting bracket
 		if (expr[i]=='(') { 
-			// Push the element in the stack 
+		    //push it to stack
 			s.push(expr[i]); 
 		} 
+		//If the current character is a closing bracket
 		else if (expr[i]==')'){
+		    //pop from stack and check if it is the starting bracket 
 		    if (s.top() == '(') s.pop();
 		    else return false;
 		}
 	} 
+	//Balanced if no starting bracket left
 	return (s.empty()); 
 } 
 
+//function for printing the elements in a list 
+void showlist(list <string> g){ 
+    list <string> :: iterator it; 
+    for(it = g.begin(); it != g.end(); ++it) 
+        cout << *it << endl; 
+} 
