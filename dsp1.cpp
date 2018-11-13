@@ -119,7 +119,7 @@ string infix2postfix(string x)
 		else if(isoperator(ch))
 		{	//a.	Repeatedly pop from Stack and add to Y each operator (on the top of Stack) 
 			//which has the same precedence as or higher precedence than operator.
-			y=y+ " ";
+			//y=y+ " ";
 			while (isoperator(mystack.top()) and isleq(ch,mystack.top()))
 			{
 
