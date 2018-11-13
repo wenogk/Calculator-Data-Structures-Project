@@ -145,7 +145,7 @@ string infix2postfix(string x)
 	return y;
 }
 bool isDoubleOperatorPresent(string y) {
-return (y.find("++")!= std::string::npos)||(y.find("--")!= std::string::npos);
+return (y.find("++")!= std::string::npos)||(y.find("--")!= std::string::npos)||(y.find("**")!= std::string::npos);
 }
 string doubleOperatorHandler(string input) {
 	string y=input;
@@ -175,6 +175,12 @@ string doubleOperatorHandler(string input) {
 			if(y[i]=='-') {
 				string search = "--" + number;
 				int ans = stoi(number)-1;
+				string result = to_string(ans);
+				y=ReplaceString(y,search,result);
+			}
+			if(y[i]=='*') {
+				string search = "**" + number;
+				int ans = stoi(number)*stoi(number);
 				string result = to_string(ans);
 				y=ReplaceString(y,search,result);
 			}
