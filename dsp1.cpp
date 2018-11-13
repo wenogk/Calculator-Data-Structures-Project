@@ -8,44 +8,12 @@
 #include<math.h>
 using namespace std;
 
-
-
 bool debugMode=true;
 bool isoperator(char); //Helper method which checks if the input char is an operator
-
 float eval(float x1, float x2, string sign) { 
 
-    if (sign == "+")//addition
-        return x1 + x2;
-  
-    if (sign == "-" && x1 != NULL)//subtraction
-        return x1 - x2;
-        
-    if (sign == "*")//multiplication
-        return x1 * x2;
-
-    if (sign == "/")//division
-        return x1 / x2;
-        
-    if (sign == "%")//integer division
-        return static_cast<int>(x1 / x2);
-        
-    if (sign == "mod")//modulus 
-        return (int)x1 % (int)x2;
-        
-    if (sign == "-" && x1 == NULL)//unary negative
-        return 0 - x2;        
-        
-    if (sign == "++" && x1 == NULL)//unary plus 
-        return x2 + 1;
-        
-    if (sign == "--" && x1 == NULL)//unary minus 
-        return x2 - 1;
-        
-    if (sign == "**" && x1 == NULL)//unary square 
-        return pow(2.0, x2);
+    return 0.0;
 }
-
 class node 
 { 
 public: 
@@ -56,7 +24,6 @@ public:
         info = x; 
     } 
 }; 
-  
 // Utility function to return the integer value 
 // of a given string 
 int toInt(string s) 
@@ -66,39 +33,8 @@ int toInt(string s)
         num = num*10 + (int(s[i])-48); 
     return num; 
 } 
-  
 // This function receives a node of the syntax tree 
 // and recursively evaluates it 
-int eval(node* root) 
-{ 
-    // empty tree 
-    if (!root) 
-        return 0; 
-  
-    // leaf node i.e, an integer 
-    if (!root->left && !root->right) 
-        return toInt(root->info); 
-  
-    // Evaluate left subtree 
-    int l_val = eval(root->left); 
-  
-    // Evaluate right subtree 
-    int r_val = eval(root->right); 
-  
-    // Check which operator to apply 
-    if (root->info=="+") 
-        return l_val+r_val; 
-  
-    if (root->info=="-") 
-        return l_val-r_val; 
-  
-    if (root->info=="*") 
-        return l_val*r_val; 
-  
-    return l_val/r_val; 
-} 
-
-
 bool isoperator(char ch)
 {
 	if( ch=='+' || ch=='-' || ch=='*' || ch=='/' || ch=='^')
@@ -107,7 +43,6 @@ bool isoperator(char ch)
 		return false;
 
 }
-
 bool isVariablePresent(string value) { //method to check if there are any other variables used in an individual variable declaration
 	//the string input value would be the part after the equals for every variable declaration statement
 	 int valueSize = value.size();  // size of the input string
@@ -120,7 +55,6 @@ bool isVariablePresent(string value) { //method to check if there are any other 
 	  }
 	  return hasAlphabetLetter;
 }
-
 bool isOperatorPresent(string value) { //method to check if there are any operators used in an individual variable declaration
 	//the string input value would be the part after the equals for every variable declaration statement
 	 int valueSize = value.size();  // size of the input string
@@ -133,10 +67,6 @@ bool isOperatorPresent(string value) { //method to check if there are any operat
 	  }
 	  return hasOperator;
 }
-
-
-
-
 string ReplaceString(std::string subject, const std::string& search,
                           const std::string& replace) { //GOT THIS REPLACESTRING METHOD FROM THE INTERNET LOL
     size_t pos = 0;
@@ -176,11 +106,12 @@ string infix2postfix(string x)
 
 	int i=0;
 	while(!mystack.empty())
-	{	
+	{
 		char ch = x[i++];
 		//3.	If an operand is encountered, add it to Y.
 		if (isalnum(ch))
 			y=y+ch;
+
 		//4.	If a left parenthesis is encountered, push it onto Stack.
 		else if(ch=='(')
 			mystack.push(ch);
@@ -188,8 +119,10 @@ string infix2postfix(string x)
 		else if(isoperator(ch))
 		{	//a.	Repeatedly pop from Stack and add to Y each operator (on the top of Stack) 
 			//which has the same precedence as or higher precedence than operator.
+			y=y+ " ";
 			while (isoperator(mystack.top()) and isleq(ch,mystack.top()))
 			{
+
 				y=y+mystack.top();
 				mystack.pop();
 			}
@@ -212,28 +145,85 @@ string infix2postfix(string x)
 	}
 	return y;
 }
+bool isDoubleOperatorPresent(string y) {
+return (y.find("++")!= std::string::npos)||(y.find("--")!= std::string::npos);
+}
+string doubleOperatorHandler(string input) {
+	string y=input;
+	while((y.find("++")!= std::string::npos)||(y.find("--")!= std::string::npos)) {
+		if(debugMode) {cout<<"------DOUBLE OPERATOR HANDLER-----"<<endl;}
+	for (int i = 0; i < y.length(); i++){
+	//	 4+++6
+		if((isoperator(y[i]))&&(isoperator(y[i+1]))&&(isdigit(y[i+2]))&&(y[i]==y[i+1])) {
 
-int evaluate(string y)		//Method which will evaluate a PostfixExpression and return the result
+				string number;
+				for (int j = i+2; j < y.length(); j++){
+					if(isdigit(y[j])) {
+					number = number + to_string(y[j]-48);
+				} else {
+					break;
+				}
+				}
+				cout<<"NUMBER IS:"<<number<<endl;
+			if(y[i]=='+') {
+				string search = "++" + number;
+				int ans = stoi(number)+1;
+				string result = to_string(ans);
+				if(debugMode) cout<<"Finding:"<<search<<" and replacing with:"<<result<<" in the string:"<<y<<endl;
+				y=ReplaceString(y,search,result);
+				break;
+			}
+			if(y[i]=='-') {
+				string search = "--" + number;
+				int ans = stoi(number)-1;
+				string result = to_string(ans);
+				y=ReplaceString(y,search,result);
+			}
+		}
+	}
+}
+return y;
+}
+int evaluate(string y)		//Method which will evaluate a infix and return the result
 {
-    cout <<  "EVALUATING:"<<y<<endl;
+	string infix = y;
+	y = infix2postfix(y);
+    cout <<  "EVALUATING:"<<y<<" from infix expression:"<<infix<<endl;
 	//1. Create a stack (e.g. of type float) to store the operands
 	stack <float> mystack;
 	//2. Scan the postfix expression from left to right for every element
+
 	for (int i = 0; i < y.length(); i++){
 	//	 a. if the element is an operand push it to the stack
-	    if (isdigit(y[i])){
+		if (isdigit(y[i])){
 	        mystack.push(int(y[i]) - 48);
 	    }
 	    //   b. if the element is an operator pop 2 elements from the stack, 
 	    //      apply the operator on it and push the result back to the stack
-	    else{
+	    else {
 	        float x1 = mystack.top();
 	        mystack.pop();
 	        float x2 = mystack.top();
 	        mystack.pop();
 	        int x3;
-            
-	        mystack.push(eval(x1,x2,y[i]));
+            if (y[i] == '+')//addition
+        return x1 + x2;
+  
+    if (y[i] == '-')//subtraction
+        return x1 - x2;
+        
+    if (y[i] == '*')//multiplication
+        return x1 * x2;
+
+    if (y[i] == '/')//division
+        return x1 / x2;
+        
+    if (y[i] == '%')//integer division
+        return static_cast<int>(x1 / x2);
+        
+    if (y[i] == '$')//modulus 
+        return (int)x1 % (int)x2;
+        
 	    }    
 	}
 	//3. return the value from the top of the stack (i.e. the final answer)	
@@ -296,6 +286,7 @@ int main(int count, char * args[]) {
 	   afterEquals = ReplaceString(afterEquals,";","");
 	   afterEquals = ReplaceString(afterEquals," ","");
 	   afterEquals = ReplaceString(afterEquals,"mod","$"); //some of the textfiles use a "mod" operator so I'm just using $ for it to make it easier to differentiate variables from operators
+	   
 	   if(debugMode) cout<<variableName<<"="<<afterEquals<<endl;
 	   //REPLACE LINE WITH VARS FROM MAP
 		  if(!variableMap.empty()) {
@@ -311,15 +302,19 @@ int main(int count, char * args[]) {
 	if(debugMode) cout << "---- End map iteration ----" <<endl;
 		  }
 		//END REPLACE LINE WITH VARS
+		  if((!isVariablePresent(afterEquals))&&(isDoubleOperatorPresent(afterEquals))) {
+		  	afterEquals = doubleOperatorHandler(afterEquals);
+		  }
 	  if((!isVariablePresent(afterEquals))&&(isOperatorPresent(afterEquals))) { //no variables in expression but expression has operations 
 	  //	cout << variableName << " has no other vars in it, so can add to map" <<endl;
 	  	//if(debugMode) cout<< "Inserting and calculating" << variableName << " = " << afterEquals << " into map (99 cus "<< variableName <<" requires calculation and evaluate() method not implemented to actually calculate lol)"<<endl;
 	  // if (debugMode) {cout<< "Insertion and Calculation occuring: " << afterEquals << "=" << to_string(evaluate(afterEquals)) <<endl;}
-	   variableMap.insert(make_pair(variableName, evaluate(infix2postfix(afterEquals)))); //change 99 to evaluate(afterEquals) when evaluate() function is implemented
+	  	
+	   variableMap.insert(make_pair(variableName, evaluate(afterEquals))); //change 99 to evaluate(afterEquals) when evaluate() function is implemented
 
 	} else if((!isVariablePresent(afterEquals))&&(!isOperatorPresent(afterEquals))) { //no variables in expression and no operations, just number
 		if(debugMode) cout<< "Inserting" << variableName << " = " << afterEquals <<" into map (direct value cus variable has no operation required, is just a number)"<<endl;
-		
+		//afterEquals = doubleOperatorHandler(afterEquals);
 		variableMap.insert(make_pair(variableName, stoi(afterEquals)));
 	}
 	   //cout << "variableName: " << variableName <<endl;
