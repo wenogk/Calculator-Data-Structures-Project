@@ -1,87 +1,72 @@
-#include <iostream>
-#include <fstream>
-#include <stack>
+#include<iostream>
+#include<string>
+#include<vector>
+#include<cmath>
+#include<stack>
+#include<ctype.h>
+#include <typeinfo>
 
-using namespace std; 
-  
-// Class to represent the nodes of syntax tree 
-class node 
-{ 
-public: 
-    string info; 
-    node *left, *right; 
-    node(string x) 
-    { 
-        info = x; 
-    } 
-}; 
-  
-// Utility function to return the integer value 
-// of a given string 
-int toInt(string s) 
-{ 
-    int num = 0; 
-    for (int i=0; i<s.length();  i++) 
-        num = num*10 + (int(s[i])-48); 
-    return num; 
-} 
-  
-// This function receives a node of the syntax tree 
-// and recursively evaluates it 
-int eval(node* root) 
-{ 
-    // empty tree 
-    if (!root) 
-        return 0; 
-  
-    // leaf node i.e, an integer 
-    if (!root->left && !root->right) 
-        return toInt(root->info); 
-  
-    // Evaluate left subtree 
-    int l_val = eval(root->left); 
-  
-    // Evaluate right subtree 
-    int r_val = eval(root->right); 
-  
-    // Check which operator to apply 
-    if (root->info=="+") 
-        return l_val+r_val; 
-  
-    if (root->info=="-") 
-        return l_val-r_val; 
-  
-    if (root->info=="*") 
-        return l_val*r_val; 
-  
-    return l_val/r_val; 
-} 
-  
-//driver function to check the above program 
-int main() 
-{ 
-    // create a syntax tree 
-    node *root = new node("+"); 
-    root->left = new node("*"); 
-    root->left->left = new node("5"); 
-    root->left->right = new node("4"); 
-    root->right = new node("-"); 
-    root->right->left = new node("100"); 
-    root->right->right = new node("20"); 
-    cout << eval(root) << endl; 
-  
-    delete(root); 
-  
-    root = new node("+"); 
-    root->left = new node("*"); 
-    root->left->left = new node("5"); 
-    root->left->right = new node("4"); 
-    root->right = new node("-"); 
-    root->right->left = new node("100"); 
-    root->right->right = new node("/"); 
-    root->right->right->left = new node("20"); 
-    root->right->right->right = new node("2"); 
-  
-    cout << eval(root); 
-    return 0; 
-} 
+using namespace std;
+bool isoperator(char ch);
+
+void tokenize(string x){
+
+    vector <string> y;
+    
+    for(int i=0; i<x.size(); i++){
+        cout << x[i] << " ";
+    }
+    
+    int i=0;
+    while(i<x.size()){
+        
+        if(isdigit(x[i])){
+            string number;
+            while (isdigit(x[i])){
+                number += x[i];
+                i++;
+            }
+            //cout << number << endl;
+            y.push_back(number);
+        }
+        
+        else if (isalpha(x[i])){
+            string variable;
+            while (isalpha(x[i])){
+                variable += x[i];
+                i++;
+            }
+            //cout << variable << endl;
+            y.push_back(variable);
+        }
+        
+        else{
+            cout << "hello" << x[i] << endl;
+            y.push_back(string(1, x[i]));
+            i++;
+        }
+        
+    }
+    
+    for(int i=0; i<y.size(); i++){
+        cout << y[i] << " ";
+    }
+}
+
+bool isdigit(char ch){
+	if( ch=='1' || ch=='2' || ch=='3' || ch=='4' || ch=='5'|| ch=='6'|| ch=='7'|| ch=='8'|| ch=='9'|| ch=='0')
+		return true;
+	else
+		return false;
+}
+
+bool isoperator(char ch){
+	if( ch=='+' || ch=='-' || ch=='*' || ch=='/' || ch=='%'|| ch=='!'|| ch=='@'|| ch=='#'|| ch=='$')
+		return true;
+	else
+		return false;
+}
+
+int main(){
+    tokenize("3+4-1");
+}
