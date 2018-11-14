@@ -22,17 +22,30 @@ string ReplaceString(string subject, const string& search, const string& replace
 vector<string> tokenize(string x){
 
     vector <string> y;
-    cout << x << endl;
+    cout << "start of tokenization" << x << endl;
     
     int i=0;
     while(i<x.size()){
+    
+         if(i == 0 and x[i] == '-' and (isdigit(x[i+1]) or x[i+1]=='(') ){//unary minus
+                //cout << i << " unary minus " << x[i] << endl;
+                y.push_back("^");
+                i++;
+        }   
         
-        if(isdigit(x[i])){//add digits to number
+         if (x[i] == '-' and (isdigit(x[i+1]) or x[i+1]=='(') and (not isdigit(x[i-1])) and x[i-1]!=')' ){ //(4-2)-(-1)
+                    //cout << i << " unary minus " << x[i] << endl;
+                    y.push_back("^");
+                    i++;
+        }
+        
+        else if (isdigit(x[i])){//add digits to number
             string number;
             while (isdigit(x[i]) or x[i] == '.' ){
                 number += x[i];
                 i++;
             }
+            //cout << "number is " << number << endl;
             y.push_back(number);
         }
         
@@ -42,80 +55,19 @@ vector<string> tokenize(string x){
                 variable += x[i];
                 i++;
             }
+            //cout << "variable is " << variable << endl;
             y.push_back(variable);
         }
         
-        else if (x[i] == '-' and (isdigit(x[i+1]) or x[i+1]=='(') ){//unary minus
-        
-            if(i == 0){
-                string number;
-                y.push_back("^");
-                i++;
-                while (isdigit(x[i]) or x[i] == '.' ){
-                    number += x[i];
-                    i++;
-                }
-            y.push_back(number);
-            }
-            
-            else{                
-                if(not isdigit(x[i-1]) and x[i-1]!=')' ){ //(4-2)-(-1)
-                    string number;
-                    y.push_back("^");
-                    i++;
-                    while (isdigit(x[i]) or x[i] == '.' ){
-                        number += x[i];
-                        i++;
-                    }
-                y.push_back(number);
-                }    
-            }
-        }
-        
-        else if (x[i] == '!'){//++
-            string number;
-            i++;
-            while (isdigit(x[i]) or x[i] == '.'){
-                number += x[i];
-                i++;
-            }
-            float f = stof(number) + 1;
-            y.push_back(to_string(f));
-        }
-
-        else if (x[i] == '@'){//--
-            string number;
-            i++;
-            while (isdigit(x[i]) or x[i] == '.'){
-                number += x[i];
-                i++;
-            }
-            float f = stof(number) - 1;
-            y.push_back(to_string(f));
-        }
-        
-        else if (x[i] == '#'){//**
-            string number;
-            i++;
-            while (isdigit(x[i]) or x[i] == '.'){
-                number += x[i];
-                i++;
-            }
-            float f = pow(stof(number),2);
-            y.push_back(to_string(f));
-        }
-        
-        
-        else{// (, ), binary operators
+        else {// (, ), binary operators
             //cout << "binary operator" << x[i] << endl;
             y.push_back(string(1, x[i]));
             i++;
         }
-        
-    }
+    }    
     
     for(int i=0; i<y.size(); i++){
-        cout << y[i] << " ";
+        //cout << y[i] << " ";
     }
     cout << endl;
     return y;
@@ -233,6 +185,21 @@ string evaluate(vector<string>  &y){
 	        mystack.pop();
 	        mystack.push(to_string(num));
 	    }
+	    else if(y[i]=="@"){
+	        float num = stof(mystack.top())-1;
+	        mystack.pop();
+	        mystack.push(to_string(num));
+	    }
+	    else if(y[i]=="#"){
+	        float num = pow(stof(mystack.top()), 2);
+	        mystack.pop();
+	        mystack.push(to_string(num));
+	    }
+	    else if(y[i]=="!"){
+	        float num = stof(mystack.top())+1;
+	        mystack.pop();
+	        mystack.push(to_string(num));
+	    }
 	    //   b. if the element is an operator pop 2 elements from the stack, 
 	    //      apply the operator on it and push the result back to the stack
 	    else{
@@ -283,7 +250,7 @@ string ReplaceString(string subject, const string& search, const string& replace
 
 int main(){
 
-    string clean = lineOperation("(-(6+5)-8)");
+    string clean = lineOperation("-(5+4)+6");//(-(6+5)-8)
     vector<string> v = tokenize(clean);
     
     cout << " Tokenize in main" << endl;
