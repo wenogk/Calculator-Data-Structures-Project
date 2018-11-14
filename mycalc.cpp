@@ -51,7 +51,7 @@ int main(int count, char * args[]) {
     }
     //remind user of the way to invocate the application
     if (inputFile == "" || outputFile == "") {
-        cout << "Usage ./mycalc -i <inputfile> -o <outputfile>>" << endl;
+       cout << "Usage ./mycalc -i <inputfile> -o <outputfile>>" << endl;
         return -1;
     }
     //print out names of the input and output textfiles
@@ -113,24 +113,26 @@ void mapEvaluation(string filename, string outputFile){
                     while (it != variableMap.end()){
                         
                         cleanExpression  = ReplaceString(cleanExpression, it->first, to_string(it->second));
-                        cout<<"result of replacement, cleanExpression = "<<cleanExpression<<endl;
+                        //cout<<"result of replacement, cleanExpression = "<<cleanExpression<<endl;
                         it++;
                     }
                 }
                 
                 //postfix calculation
                 if((not isVariablePresent(cleanExpression)) and (isOperatorPresent(cleanExpression))) { 
-                    cout << variableName << " is being evaluated" << endl;
+                    //cout << variableName << " is being evaluated" << endl;
                     
                     vector<string> v = tokenize(cleanExpression);//tokenize the expression into vector 
                     for(int i=0; i<v.size();i++){
-                        cout<<"i: "<<i<<" - " << v[i]<<endl;
+                       // cout<<"i: "<<i<<" - " << v[i]<<endl;
                     }
                     vector<string> postfix = infix2postfix(v);//postfix expression
                     string result = evaluate(postfix);//result of calculation
-                    cout << variableName << " = " << result;
+                    //cout << variableName << " = " << result;
                     string s = variableName + " = " + result + ";";
-                   // writeToFile(s,outputFile);
+                    if(fileSize<lineNum) {
+                    //writeToFile(s,outputFile);
+                }
                     fileSize+=1;
                     variableMap.insert(make_pair(variableName, stof(result))); //put (variable,value) to map
                 } 
@@ -138,7 +140,9 @@ void mapEvaluation(string filename, string outputFile){
                 //direct value
                 else if((not isVariablePresent(cleanExpression)) and (not isOperatorPresent(cleanExpression))) { 
                      string s = variableName + " = " + cleanExpression + ";";
+                     if(fileSize<lineNum) {
                // writeToFile(s,outputFile);
+            }
                     fileSize+=1;
                     variableMap.insert(make_pair(variableName, stof(cleanExpression))); //put (variable,value) to map
                 }    
@@ -155,10 +159,11 @@ void mapEvaluation(string filename, string outputFile){
         file.close();
 
     }
+    
      map <string, float>::iterator it2 = variableMap.begin();
     while (it2 != variableMap.end())
     {
-        
+
         string s = it2->first + " = " + to_string(it2->second) + ";";
                 writeToFile(s,outputFile);
                     
@@ -171,7 +176,7 @@ void mapEvaluation(string filename, string outputFile){
     while (it != variableMap.end())
     {
         
-        cout<< it->first << " = " << it->second <<endl;
+        //cout<< it->first << " = " << it->second <<endl;
         it++;
     }
  
@@ -240,7 +245,7 @@ string evaluate(vector<string>  &y){
             mystack.pop();
             float x3 = eval(x2,x1,y[i]);
             mystack.push(to_string(x3));
-            cout << x2 << " " << x1 << " "<< y[i] << " =  " << x3 << endl;
+            //cout << x2 << " " << x1 << " "<< y[i] << " =  " << x3 << endl;
         }    
     }
     //3. return the value from the top of the stack (i.e. the final answer) 
@@ -333,8 +338,8 @@ bool isoperator(string str){
 vector<string> tokenize(string x){
 
     vector <string> y;
-    cout << "start of tokenization" << x << endl;
-    cout<< "size of string for tokenization: "<<x.size()<<endl;
+    //cout << "start of tokenization" << x << endl;
+    //cout<< "size of string for tokenization: "<<x.size()<<endl;
     int i=0;
     while(i<x.size()){
     
@@ -356,7 +361,7 @@ vector<string> tokenize(string x){
                 number += x[i];
                 i++;
             }
-            cout<<"FULL NUMBER IS--"<<number<<"--"<<endl;
+           // cout<<"FULL NUMBER IS--"<<number<<"--"<<endl;
             //cout << "number is " << number << endl;
             y.push_back(number);
             
@@ -375,7 +380,7 @@ vector<string> tokenize(string x){
         
         else {// (, ), binary operators
             //cout << "binary operator" << x[i] << endl;
-            cout<<"PUSHING: --"<< x[i] << "--" << endl;
+            //cout<<"PUSHING: --"<< x[i] << "--" << endl;
             y.push_back(string(1, x[i]));
     
             i++;
@@ -385,7 +390,7 @@ vector<string> tokenize(string x){
     for(int i=0; i<y.size(); i++){
         //cout << y[i] << " ";
     }
-    cout << endl;
+    //cout << endl;
     return y;
 }
 
@@ -395,7 +400,7 @@ vector<string> infix2postfix(vector<string> &x){
     stack <string> mystack;
     vector<string> y;
     
-    cout << "post fix begins" << endl;
+    //cout << "post fix begins" << endl;
 
     //1.    Push “(“onto Stack, and add “)” to the end of X.
     x.push_back(")");
@@ -446,11 +451,11 @@ vector<string> infix2postfix(vector<string> &x){
         }
     }
     
-    cout << "in post fix" << endl;
+   // cout << "in post fix" << endl;
     for (int i=0; i<y.size(); i++){
-        cout << y[i] << " ";
+       // cout << y[i] << " ";
     }
-    cout << endl;
+    //cout << endl;
     return y;
 }
 
