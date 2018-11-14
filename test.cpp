@@ -8,40 +8,106 @@
 
 using namespace std;
 bool isoperator(char ch);
+vector<string> tokenize(string x);
+vector<string> infix2postfix(vector<string> &x);
+bool isleq(string opA, string opB);
+int convertOpToInt (string str);
+bool isoperator(string str);
+string evaluate(vector<string>  &y);
+float eval(float x1, float x2, string sign);
+string lineOperation(string afterEquals);
+string ReplaceString(string subject, const string& search, const string& replace);
 
-void tokenize(string x){
+
+vector<string> tokenize(string x){
 
     vector <string> y;
-    
-    for(int i=0; i<x.size(); i++){
-        cout << x[i] << " ";
-    }
+    cout << x << endl;
     
     int i=0;
     while(i<x.size()){
         
-        if(isdigit(x[i])){
+        if(isdigit(x[i])){//add digits to number
             string number;
-            while (isdigit(x[i])){
+            while (isdigit(x[i]) or x[i] == '.' ){
                 number += x[i];
                 i++;
             }
-            //cout << number << endl;
             y.push_back(number);
         }
         
-        else if (isalpha(x[i])){
+        else if (isalpha(x[i])){//add letters to variable
             string variable;
             while (isalpha(x[i])){
                 variable += x[i];
                 i++;
             }
-            //cout << variable << endl;
             y.push_back(variable);
         }
         
-        else{
-            cout << "hello" << x[i] << endl;
+        else if (x[i] == '-' and (isdigit(x[i+1]) or x[i+1]=='(') ){//unary minus
+        
+            if(i == 0){
+                string number;
+                y.push_back("^");
+                i++;
+                while (isdigit(x[i]) or x[i] == '.' ){
+                    number += x[i];
+                    i++;
+                }
+            y.push_back(number);
+            }
+            
+            else{                
+                if(not isdigit(x[i-1]) and x[i-1]!=')' ){ //(4-2)-(-1)
+                    string number;
+                    y.push_back("^");
+                    i++;
+                    while (isdigit(x[i]) or x[i] == '.' ){
+                        number += x[i];
+                        i++;
+                    }
+                y.push_back(number);
+                }    
+            }
+        }
+        
+        else if (x[i] == '!'){//++
+            string number;
+            i++;
+            while (isdigit(x[i]) or x[i] == '.'){
+                number += x[i];
+                i++;
+            }
+            float f = stof(number) + 1;
+            y.push_back(to_string(f));
+        }
+
+        else if (x[i] == '@'){//--
+            string number;
+            i++;
+            while (isdigit(x[i]) or x[i] == '.'){
+                number += x[i];
+                i++;
+            }
+            float f = stof(number) - 1;
+            y.push_back(to_string(f));
+        }
+        
+        else if (x[i] == '#'){//**
+            string number;
+            i++;
+            while (isdigit(x[i]) or x[i] == '.'){
+                number += x[i];
+                i++;
+            }
+            float f = pow(stof(number),2);
+            y.push_back(to_string(f));
+        }
+        
+        
+        else{// (, ), binary operators
+            //cout << "binary operator" << x[i] << endl;
             y.push_back(string(1, x[i]));
             i++;
         }
@@ -51,22 +117,193 @@ void tokenize(string x){
     for(int i=0; i<y.size(); i++){
         cout << y[i] << " ";
     }
+    cout << endl;
+    return y;
 }
 
-bool isdigit(char ch){
-	if( ch=='1' || ch=='2' || ch=='3' || ch=='4' || ch=='5'|| ch=='6'|| ch=='7'|| ch=='8'|| ch=='9'|| ch=='0')
+
+string lineOperation(string afterEquals){
+
+    afterEquals = ReplaceString(afterEquals,";",""); //get rid of ;
+    afterEquals = ReplaceString(afterEquals," ",""); //get rid of space
+    afterEquals = ReplaceString(afterEquals,"++","!"); //replace ++ with !
+    afterEquals = ReplaceString(afterEquals,"--","@"); //replace -- with @ 5+++4
+    afterEquals = ReplaceString(afterEquals,"**","#"); //replace ** with #
+    afterEquals = ReplaceString(afterEquals,"mod","$"); //replace mod with $ 
+    return afterEquals;
+}
+
+
+vector<string> infix2postfix(vector<string> &x){
+
+	stack <string> mystack;
+	vector<string> y;
+	
+	cout << "post fix begins" << endl;
+
+	//1.	Push “(“onto Stack, and add “)” to the end of X.
+	x.push_back(")");
+	mystack.push("(");
+
+	//2.	Scan X from left to right and repeat Step 3 to 6 for each element of X 
+	//until the Stack is empty.
+	int i=0;
+	while(!mystack.empty())
+	{	
+		string str = x[i++];
+		//3.	If an operand is encountered, add it to Y.
+		if (not isoperator(str) and str!="(" and str!=")"){
+		    //cout << "push operand to vector: " << str << endl;
+			y.push_back(str);
+		}
+		//4.	If a left parenthesis is encountered, push it onto Stack.
+		else if(str=="("){
+		    //cout << "push ( to vector: " << str << endl;
+			mystack.push(str);
+		}
+		//5.	If an operator is encountered, then: 
+		else if(isoperator(str))
+	    {	//a.	Repeatedly pop from Stack and add to Y each operator (on the top of Stack) 
+			//which has the same precedence as or higher precedence than operator.
+			while (isoperator(mystack.top()) and isleq(str,mystack.top()))
+			{
+			    //cout << "push operator to vector: " << mystack.top() << endl;
+				y.push_back(mystack.top());
+				mystack.pop();
+			}
+			//b.	Add operator to Stack.
+			mystack.push(str);
+		}
+		//.6.	If a right parenthesis is encountered, then: 
+		else if(str==")")
+		{
+			//a.	Repeatedly pop from Stack and add to Y each operator 
+			//(on the top of Stack) until a left parenthesis is encountered.
+			while(mystack.top()!="(")
+			{
+			    //cout << "push ) to vector: "  << mystack.top() << endl;
+				y.push_back(mystack.top());
+				mystack.pop();
+			}
+			//b.	Remove the left Parenthesis.
+			mystack.pop();
+		}
+	}
+	
+	cout << "in post fix" << endl;
+	for (int i=0; i<y.size(); i++){
+        cout << y[i] << " ";
+    }
+    cout << endl;
+    return y;
+}
+
+
+
+bool isleq(string opA, string opB){
+	return (convertOpToInt(opA)<=convertOpToInt(opB));
+}
+int convertOpToInt (string str){
+    if (str=="+" || str=="-") return 1;
+    if (str=="*" || str=="/" || str=="%"|| str=="$") return 2;
+    if (str=="^") return 3;
+    return 0;
+}
+
+bool isoperator(string str){
+	if( str=="+" || str=="-" || str=="*" || str=="/" || str=="%"|| str=="!"|| str=="@"|| str=="#"|| str=="$"||str=="^")
 		return true;
 	else
 		return false;
 }
 
-bool isoperator(char ch){
-	if( ch=='+' || ch=='-' || ch=='*' || ch=='/' || ch=='%'|| ch=='!'|| ch=='@'|| ch=='#'|| ch=='$')
-		return true;
-	else
-		return false;
+
+string evaluate(vector<string>  &y){
+
+	//1. Create a stack (e.g. of type float) to store the operands
+	stack <string> mystack;
+	//2. Scan the postfix expression from left to right for every element
+	for (int i = 0; i < y.size(); i++){
+	//	 a. if the element is an operand push it to the stack
+	    if (not isoperator(y[i])){
+	        mystack.push(y[i]);
+	    }
+	    else if(y[i]=="^"){
+	        float num = stof(mystack.top())*-1;
+	        mystack.pop();
+	        mystack.push(to_string(num));
+	    }
+	    //   b. if the element is an operator pop 2 elements from the stack, 
+	    //      apply the operator on it and push the result back to the stack
+	    else{
+	        float x1 = stof(mystack.top());
+	        mystack.pop();
+	        float x2 = stof(mystack.top());
+	        mystack.pop();
+	        float x3 = eval(x2,x1,y[i]);
+	        mystack.push(to_string(x3));
+	        cout << x2 << " " << x1 << " "<< y[i] << " =  " << x3 << endl;
+	    }    
+	}
+	//3. return the value from the top of the stack (i.e. the final answer)	
+	return mystack.top();
 }
+
+float eval(float x1, float x2, string sign) { 
+
+    if (sign == "+")//addition
+        return x1 + x2;
+  
+    if (sign == "-")//subtraction
+        return x1 - x2;
+        
+    if (sign == "*")//multiplication
+        return x1 * x2;
+
+    if (sign == "/")//division
+        return x1 / x2;
+        
+    if (sign == "%")//integer division
+        return static_cast<int>(x1 / x2);
+        
+    if (sign == "$")//modulus 
+        return (int)x1 % (int)x2;
+}
+
+
+string ReplaceString(string subject, const string& search, const string& replace) { 
+    size_t pos = 0;
+    while ((pos = subject.find(search, pos)) != std::string::npos) {
+         subject.replace(pos, search.length(), replace);
+         pos += replace.length();
+    }
+    return subject;
+}
+
 
 int main(){
-    tokenize("3+4-1");
+
+    string clean = lineOperation("(-(6+5)-8)");
+    vector<string> v = tokenize(clean);
+    
+    cout << " Tokenize in main" << endl;
+    for (int i=0; i<v.size(); i++){
+        cout << v[i] << " ";
+    }
+    cout << endl;
+    
+    vector<string> post = infix2postfix(v);
+    
+    cout << " Postfix in main" << endl;
+    for (int i=0; i<post.size(); i++){
+        cout << post[i] << " ";
+    }
+    cout << endl;
+    
+    string result = evaluate(post);//result of calculation
+    
+    cout << "result of calculation " << result << endl;
+    
 }
+
+
