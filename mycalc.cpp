@@ -20,7 +20,7 @@ bool isOperatorPresent(string value);
 string ReplaceString(string subject, const string& search, const string& replace);
 bool isoperator(string str);
 void mapEvaluation(string filename);
-float evaluate(vector<string>  y);
+string evaluate(vector<string>  y);
 float eval(float x1, float x2, string sign);
 vector<string> tokenize(string x);
 int convertOpToInt (string str);
@@ -92,9 +92,10 @@ void mapEvaluation(string filename){
             variableName = line.substr(0, line.find("=")-1); //variable name
             afterEquals = line.substr(line.find("=")+1, line.size()-1); //expression
             
-            cout << afterEquals << endl;
+            cout << "afterEquals" << afterEquals << endl;
             
             cleanExpression = lineOperation(afterEquals);//expression manipulation
+            
             
             if(areParanthesisBalanced(cleanExpression)){//sanity check
                 cout << cleanExpression << " is balanced" << endl;
@@ -111,14 +112,14 @@ void mapEvaluation(string filename){
                 //postfix calculation
                 if((!isVariablePresent(cleanExpression))&&(isOperatorPresent(cleanExpression))) { 
                     vector<string> v = tokenize(cleanExpression);//tokenize the expression into vector 
-                    vector<string> postfix = infix2postfix(v);
-                    float result = evaluate(postfix);
-                    variableMap.insert(make_pair(variableName, result)); 
+                    vector<string> postfix = infix2postfix(v);//postfix expression
+                    string result = evaluate(postfix);//result of calculation
+                    variableMap.insert(make_pair(variableName, stof(result))); //put (variable,value) to map
                 } 
                 
                 //simple calculation
                 else if((!isVariablePresent(cleanExpression))&&(!isOperatorPresent(cleanExpression))) { 
-                    variableMap.insert(make_pair(variableName, stoi(afterEquals)));
+                    variableMap.insert(make_pair(variableName, stof(afterEquals)));
                 }    
                 
             }
@@ -161,7 +162,7 @@ float eval(float x1, float x2, string sign) {
 }
 
 //Method which will evaluate a PostfixExpression and return the result
-float evaluate(vector<string>  y){
+string evaluate(vector<string>  y){
 
 	//1. Create a stack (e.g. of type float) to store the operands
 	stack <string> mystack;
@@ -184,7 +185,7 @@ float evaluate(vector<string>  y){
 	    }    
 	}
 	//3. return the value from the top of the stack (i.e. the final answer)	
-	return stof(mystack.top());
+	return mystack.top();
 }
 
 
