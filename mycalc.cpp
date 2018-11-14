@@ -19,6 +19,8 @@ bool isVariablePresent(string value);
 bool isOperatorPresent(string value);
 string ReplaceString(string subject, const string& search, const string& replace);
 bool isoperator(string str);
+
+bool isoperator(char ch);
 void mapEvaluation(string filename);
 string evaluate(vector<string>  y);
 float eval(float x1, float x2, string sign);
@@ -80,9 +82,9 @@ void mapEvaluation(string filename){
     
     while(variableMap.size()!=lineNum) {//while not all variables are solved
 
-	    file.open(filename);
-	    string lineString;
-	
+        file.open(filename);
+        string lineString;
+    
         while (getline(file, line)) {
         
         /*
@@ -104,7 +106,9 @@ void mapEvaluation(string filename){
                 if(!variableMap.empty()) {
                     map<string, float>::iterator it = variableMap.begin();
                     while (it != variableMap.end()){
+                        cout<< "replacing:"<<it->first<<" with:"<<it->second<<" in cleanExpression:"<<cleanExpression<<endl;
                         cleanExpression  = ReplaceString(cleanExpression, it->first, to_string(it->second));
+                        cout<<"result of replacement, cleanExpression="<<cleanExpression<<endl;
                         it++;
                     }
                 }
@@ -114,12 +118,14 @@ void mapEvaluation(string filename){
                     vector<string> v = tokenize(cleanExpression);//tokenize the expression into vector 
                     vector<string> postfix = infix2postfix(v);//postfix expression
                     string result = evaluate(postfix);//result of calculation
+                    cout<<"STOF() OF THIS:"<<result<<endl;
                     variableMap.insert(make_pair(variableName, stof(result))); //put (variable,value) to map
                 } 
                 
                 //simple calculation
                 else if((!isVariablePresent(cleanExpression))&&(!isOperatorPresent(cleanExpression))) { 
-                    variableMap.insert(make_pair(variableName, stof(afterEquals)));
+                    cout<<"STOF() OF THIS:"<<afterEquals<<endl;
+                    variableMap.insert(make_pair(variableName, stof(cleanExpression)));
                 }    
                 
             }
@@ -127,8 +133,8 @@ void mapEvaluation(string filename){
         
         //every line of expression has been visited
         file.close();
-	}
-	
+    }
+    
     //calculation completed
     map <string, float>::iterator it = variableMap.begin();
     while (it != variableMap.end())
@@ -164,28 +170,28 @@ float eval(float x1, float x2, string sign) {
 //Method which will evaluate a PostfixExpression and return the result
 string evaluate(vector<string>  y){
 
-	//1. Create a stack (e.g. of type float) to store the operands
-	stack <string> mystack;
-	//2. Scan the postfix expression from left to right for every element
-	for (int i = 0; i < y.size(); i++){
-	//	 a. if the element is an operand push it to the stack
-	    if (not isoperator(y[i])){
-	        mystack.push(y[i]);
-	    }
-	    //   b. if the element is an operator pop 2 elements from the stack, 
-	    //      apply the operator on it and push the result back to the stack
-	    else{
-	        float x1 = stof(mystack.top());
-	        mystack.pop();
-	        float x2 = stof(mystack.top());
-	        mystack.pop();
-	        int x3;
+    //1. Create a stack (e.g. of type float) to store the operands
+    stack <string> mystack;
+    //2. Scan the postfix expression from left to right for every element
+    for (int i = 0; i < y.size(); i++){
+    //   a. if the element is an operand push it to the stack
+        if (not isoperator(y[i])){
+            mystack.push(y[i]);
+        }
+        //   b. if the element is an operator pop 2 elements from the stack, 
+        //      apply the operator on it and push the result back to the stack
+        else{
+            float x1 = stof(mystack.top());
+            mystack.pop();
+            float x2 = stof(mystack.top());
+            mystack.pop();
+            int x3;
             
-	        mystack.push(to_string(eval(x1,x2,y[i])));
-	    }    
-	}
-	//3. return the value from the top of the stack (i.e. the final answer)	
-	return mystack.top();
+            mystack.push(to_string(eval(x1,x2,y[i])));
+        }    
+    }
+    //3. return the value from the top of the stack (i.e. the final answer) 
+    return mystack.top();
 }
 
 
@@ -208,57 +214,67 @@ BELOW ARE HELPER FUNCTIONS
 string lineOperation(string afterEquals){
 
     afterEquals = ReplaceString(afterEquals,";",""); //get rid of ;
-	afterEquals = ReplaceString(afterEquals," ",""); //get rid of space
-	afterEquals = ReplaceString(afterEquals,"++","!"); //replace ++ with !
-	afterEquals = ReplaceString(afterEquals,"--","@"); //replace -- with @
-	afterEquals = ReplaceString(afterEquals,"**","#"); //replace ** with #
-	afterEquals = ReplaceString(afterEquals,"mod","$"); //replace mod with $ 
-	return afterEquals;
+    afterEquals = ReplaceString(afterEquals," ",""); //get rid of space
+    afterEquals = ReplaceString(afterEquals,"++","!"); //replace ++ with !
+    afterEquals = ReplaceString(afterEquals,"--","@"); //replace -- with @ 5+++4
+    afterEquals = ReplaceString(afterEquals,"**","#"); //replace ** with #
+    afterEquals = ReplaceString(afterEquals,"mod","$"); //replace mod with $ 
+    return afterEquals;
 }
 
 //Sanity check function using stack
 bool areParanthesisBalanced(string expr) { 
-	stack <char> s; 
-	char x; 
-	// Traversing the Expression 
-	for (int i=0; i<expr.length(); i++) { 
-		if (expr[i]=='(') { //If the current character is a starting bracket
-			s.push(expr[i]); //push it to stack
-		} 
-		//If the current character is a closing bracket
-		else if (expr[i]==')'){
-		    if (s.top() == '(') s.pop();//pop from stack and check if it is the starting bracket 
-		    else return false;
-		}
-	} 
-	//Balanced if no starting bracket left
-	return (s.empty()); 
+    stack <char> s; 
+    char x; 
+    // Traversing the Expression 
+    for (int i=0; i<expr.length(); i++) { 
+        if (expr[i]=='(') { //If the current character is a starting bracket
+            s.push(expr[i]); //push it to stack
+        } 
+        //If the current character is a closing bracket
+        else if (expr[i]==')'){
+            if (s.top() == '(') s.pop();//pop from stack and check if it is the starting bracket 
+            else return false;
+        }
+    } 
+    //Balanced if no starting bracket left
+    return (s.empty()); 
 } 
 
 bool isVariablePresent(string value){ //method to check if there are any other variables used in an individual variable declaration
-	//the string input value would be the part after the equals for every variable declaration statement
-	int valueSize = value.size();  // size of the input string
-	bool hasAlphabetLetter=false;
-	for (int i = 0; i < valueSize; i++) {  //iterate over ever character of input string
-	  	if(isalpha(value[i])) { //if a letter is found
-	  		hasAlphabetLetter=true;
-	  		break; //break as if even a single letter is found that means there is a variable so it has to be true
-	  	} 
-	  }
-	  return hasAlphabetLetter;
+    //the string input value would be the part after the equals for every variable declaration statement
+    int valueSize = value.size();  // size of the input string
+    bool hasAlphabetLetter=false;
+    for (int i = 0; i < valueSize; i++) {  //iterate over ever character of input string
+        if(isalpha(value[i])) { //if a letter is found
+            hasAlphabetLetter=true;
+            break; //break as if even a single letter is found that means there is a variable so it has to be true
+        } 
+      }
+      return hasAlphabetLetter;
 }
 
 bool isOperatorPresent(string value){ //method to check if there are any operators used in an individual variable declaration
-	//the string input value would be the part after the equals for every variable declaration statement
-	int valueSize = value.size();  // size of the input string
-	bool hasOperator=false;
-	for (int i = 0; i < valueSize; i++) {  //iterate over ever character of input string
-	  	if(isoperator(to_string(value[i]))) { //if a letter is found
-	  		hasOperator=true;
-	  		break; //break as if one letter is found that means there is a variable so it has to be true
-	  	} 
-	  }
-	  return hasOperator;
+    //the string input value would be the part after the equals for every variable declaration statement
+    int valueSize = value.size();  // size of the input string
+    bool hasOperator=false;
+    for (int i = 0; i < valueSize; i++) {  //iterate over ever character of input string
+        //cout<<"VALUE[i]="<< value[i]<<endl;
+        if(isoperator(value[i])) { //if a letter is found
+            //cout<<"OPERATOR VALUE[i]="<< value[i]<<endl;
+            if(value[i]=='-') {
+                if(((isdigit(value[i-1]))||(value[i-1]==')'))&&(((isdigit(value[i+1]))||(value[i+1]=='(')))) {
+                    hasOperator=true;
+                    break;
+                }
+            } else {     
+                hasOperator=true;
+                break; 
+            }
+       //break as if one letter is found that means there is a variable so it has to be true
+        } 
+      } //5+4 5-(-5)    -5-(4)
+      return hasOperator;
 }
 
 //String replacement 
@@ -271,11 +287,18 @@ string ReplaceString(string subject, const string& search, const string& replace
     return subject;
 }
 
+bool isoperator(char ch){
+    if( ch=='+' || ch=='-' || ch=='*' || ch=='/' || ch=='%'|| ch=='!'|| ch=='@'|| ch=='#'|| ch=='$')
+        return true;
+    else
+        return false;
+}
+
 bool isoperator(string str){
-	if( str=="+" || str=="-" || str=="*" || str=="/" || str=="%"|| str=="!"|| str=="@"|| str=="#"|| str=="$")
-		return true;
-	else
-		return false;
+    if( str=="+" || str=="-" || str=="*" || str=="/" || str=="%"|| str=="!"|| str=="@"|| str=="#"|| str=="$")
+        return true;
+    else
+        return false;
 }
 
 
@@ -369,55 +392,55 @@ vector<string> tokenize(string x){
 
 vector<string> infix2postfix(vector<string> x){
 
-	stack <string> mystack;
-	vector<string> y;
+    stack <string> mystack;
+    vector<string> y;
 
-	//1.	Push “(“onto Stack, and add “)” to the end of X.
-	x.push_back(")");
-	mystack.push("(");
+    //1.    Push “(“onto Stack, and add “)” to the end of X.
+    x.push_back(")");
+    mystack.push("(");
 
-	//2.	Scan X from left to right and repeat Step 3 to 6 for each element of X 
-	//until the Stack is empty.
-	int i=0;
-	while(!mystack.empty())
-	{	
-		string str = x[i++];
-		//3.	If an operand is encountered, add it to Y.
-		if (not isoperator(str) and str!="(" and str!=")")
-			y.push_back(str);
-		//4.	If a left parenthesis is encountered, push it onto Stack.
-		else if(str=="(")
-			mystack.push(str);
-		//5.	If an operator is encountered, then: 
-		else if(isoperator(str))
-	    {	//a.	Repeatedly pop from Stack and add to Y each operator (on the top of Stack) 
-			//which has the same precedence as or higher precedence than operator.
-			while (isoperator(mystack.top()) and isleq(str,mystack.top()))
-			{
-				y.push_back(mystack.top());
-				mystack.pop();
-			}
-			//b.	Add operator to Stack.
-			mystack.push(str);
-		}
-		//.6.	If a right parenthesis is encountered, then: 
-		else if(str==")")
-		{
-			//a.	Repeatedly pop from Stack and add to Y each operator 
-			//(on the top of Stack) until a left parenthesis is encountered.
-			while(mystack.top()!="(")
-			{
-				y.push_back(mystack.top());
-				mystack.pop();
-			}
-			//b.	Remove the left Parenthesis.
-			mystack.pop();
-		}
-	}
+    //2.    Scan X from left to right and repeat Step 3 to 6 for each element of X 
+    //until the Stack is empty.
+    int i=0;
+    while(!mystack.empty())
+    {   
+        string str = x[i++];
+        //3.    If an operand is encountered, add it to Y.
+        if (not isoperator(str) and str!="(" and str!=")")
+            y.push_back(str);
+        //4.    If a left parenthesis is encountered, push it onto Stack.
+        else if(str=="(")
+            mystack.push(str);
+        //5.    If an operator is encountered, then: 
+        else if(isoperator(str))
+        {   //a.    Repeatedly pop from Stack and add to Y each operator (on the top of Stack) 
+            //which has the same precedence as or higher precedence than operator.
+            while (isoperator(mystack.top()) and isleq(str,mystack.top()))
+            {
+                y.push_back(mystack.top());
+                mystack.pop();
+            }
+            //b.    Add operator to Stack.
+            mystack.push(str);
+        }
+        //.6.   If a right parenthesis is encountered, then: 
+        else if(str==")")
+        {
+            //a.    Repeatedly pop from Stack and add to Y each operator 
+            //(on the top of Stack) until a left parenthesis is encountered.
+            while(mystack.top()!="(")
+            {
+                y.push_back(mystack.top());
+                mystack.pop();
+            }
+            //b.    Remove the left Parenthesis.
+            mystack.pop();
+        }
+    }
 }
 
 bool isleq(string opA, string opB){
-	return (convertOpToInt(opA)<=convertOpToInt(opB));
+    return (convertOpToInt(opA)<=convertOpToInt(opB));
 }
 int convertOpToInt (string str){
     if (str=="+" || str=="-") return 1;
