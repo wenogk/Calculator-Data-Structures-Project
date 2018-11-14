@@ -22,12 +22,12 @@ bool isoperator(string str);
 
 bool isoperator(char ch);
 void mapEvaluation(string filename);
-string evaluate(vector<string>  y);
+string evaluate(vector<string>  &y);
 float eval(float x1, float x2, string sign);
 vector<string> tokenize(string x);
 int convertOpToInt (string str);
 bool isleq(string opA, string opB);
-vector<string> infix2postfix(vector<string> x);
+vector<string> infix2postfix(vector<string> &x);
 vector<string> tokenize(string x);
 
 
@@ -168,7 +168,7 @@ float eval(float x1, float x2, string sign) {
 }
 
 //Method which will evaluate a PostfixExpression and return the result
-string evaluate(vector<string>  y){
+string evaluate(vector<string>  &y){
 
     //1. Create a stack (e.g. of type float) to store the operands
     stack <string> mystack;
@@ -197,15 +197,7 @@ string evaluate(vector<string>  y){
 
 
 /*
-
-
-
-
 BELOW ARE HELPER FUNCTIONS
-
-
-
-
 */
 
 
@@ -390,7 +382,7 @@ vector<string> tokenize(string x){
 }
 
 
-vector<string> infix2postfix(vector<string> x){
+vector<string> infix2postfix(vector<string> &x){
 
     stack <string> mystack;
     vector<string> y;
@@ -437,6 +429,7 @@ vector<string> infix2postfix(vector<string> x){
             mystack.pop();
         }
     }
+    return y;
 }
 
 bool isleq(string opA, string opB){
