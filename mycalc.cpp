@@ -19,7 +19,7 @@ bool isVariablePresent(string value);
 bool isOperatorPresent(string value);
 string ReplaceString(string subject, const string& search, const string& replace);
 bool isoperator(string str);
-void mapEvaluation(string filename);
+void mapEvaluation(string filename, string k);
 string evaluate(vector<string>  &y);
 float eval(float x1, float x2, string sign);
 vector<string> tokenize(string x);
@@ -27,8 +27,15 @@ int convertOpToInt (string str);
 bool isleq(string opA, string opB);
 vector<string> infix2postfix(vector<string> &x);
 bool isoperator(char ch);
+void writeToFile(string line, string filename);
 
-
+void writeToFile(string line, string filename) {
+ofstream myFile;
+line+="\n";
+myFile.open(filename, std::ofstream::out | std::ofstream::app);
+myFile << line;
+myFile.close();
+}
 
 int main(int count, char * args[]) {
 
@@ -51,7 +58,7 @@ int main(int count, char * args[]) {
     cout << "Input file is " << inputFile << endl;
     cout << "Output file is " << outputFile << endl;
 
-    mapEvaluation(inputFile);
+    mapEvaluation(inputFile,outputFile);
 }
 
 
@@ -59,7 +66,7 @@ int main(int count, char * args[]) {
 
 
 //Add calculated variables and values to the map
-void mapEvaluation(string filename){
+void mapEvaluation(string filename, string outputFile){
     
     ifstream file;
     map<string, float> variableMap;  
@@ -77,13 +84,16 @@ void mapEvaluation(string filename){
         }
     }
     file.close();
-    
-    while(variableMap.size()!=lineNum) {//while not all variables are solved
+   int k=0;
+    int fileSize=0;
+    while((variableMap.size()!=lineNum)&&(fileSize!=lineNum)) {//while not all variables are solved
+        k++; if(k==1000){break;}
 
         file.open(filename);
         string lineString;
-    
+    int k=0;
         while (getline(file, line) and line!="") {
+            k++; if(k==1000){break;}
         
         /*
         evaluation carried on one single expression
@@ -101,6 +111,7 @@ void mapEvaluation(string filename){
                 if(!variableMap.empty()) {
                     map<string, float>::iterator it = variableMap.begin();
                     while (it != variableMap.end()){
+                        
                         cleanExpression  = ReplaceString(cleanExpression, it->first, to_string(it->second));
                         cout<<"result of replacement, cleanExpression = "<<cleanExpression<<endl;
                         it++;
@@ -112,32 +123,58 @@ void mapEvaluation(string filename){
                     cout << variableName << " is being evaluated" << endl;
                     
                     vector<string> v = tokenize(cleanExpression);//tokenize the expression into vector 
+                    for(int i=0; i<v.size();i++){
+                        cout<<"i: "<<i<<" - " << v[i]<<endl;
+                    }
                     vector<string> postfix = infix2postfix(v);//postfix expression
                     string result = evaluate(postfix);//result of calculation
                     cout << variableName << " = " << result;
-                    
+                    string s = variableName + " = " + result + ";";
+                   // writeToFile(s,outputFile);
+                    fileSize+=1;
                     variableMap.insert(make_pair(variableName, stof(result))); //put (variable,value) to map
                 } 
                 
                 //direct value
                 else if((not isVariablePresent(cleanExpression)) and (not isOperatorPresent(cleanExpression))) { 
-                    variableMap.insert(make_pair(variableName, stof(cleanExpression)));
+                     string s = variableName + " = " + cleanExpression + ";";
+               // writeToFile(s,outputFile);
+                    fileSize+=1;
+                    variableMap.insert(make_pair(variableName, stof(cleanExpression))); //put (variable,value) to map
                 }    
                 
             }
+
+            
+         /**/
+   
         }
+
         
         //every line of expression has been visited
         file.close();
+
     }
+     map <string, float>::iterator it2 = variableMap.begin();
+    while (it2 != variableMap.end())
+    {
+        
+        string s = it2->first + " = " + to_string(it2->second) + ";";
+                writeToFile(s,outputFile);
+                    
+        it2++;
+
+    }  
     
     //calculation completed
-    map <string, float>::iterator it = variableMap.begin();
+     map <string, float>::iterator it = variableMap.begin();
     while (it != variableMap.end())
     {
+        
         cout<< it->first << " = " << it->second <<endl;
         it++;
     }
+ 
 }
 
 
@@ -166,48 +203,48 @@ float eval(float x1, float x2, string sign) {
 //Method which will evaluate a PostfixExpression and return the result
 string evaluate(vector<string>  &y){
 
-	//1. Create a stack (e.g. of type float) to store the operands
-	stack <string> mystack;
-	//2. Scan the postfix expression from left to right for every element
-	for (int i = 0; i < y.size(); i++){
-	//	 a. if the element is an operand push it to the stack
-	    if (not isoperator(y[i])){
-	        mystack.push(y[i]);
-	    }
-	    else if(y[i]=="^"){
-	        float num = stof(mystack.top())*-1;
-	        mystack.pop();
-	        mystack.push(to_string(num));
-	    }
-	    else if(y[i]=="@"){
-	        float num = stof(mystack.top())-1;
-	        mystack.pop();
-	        mystack.push(to_string(num));
-	    }
-	    else if(y[i]=="#"){
-	        float num = pow(stof(mystack.top()), 2);
-	        mystack.pop();
-	        mystack.push(to_string(num));
-	    }
-	    else if(y[i]=="!"){
-	        float num = stof(mystack.top())+1;
-	        mystack.pop();
-	        mystack.push(to_string(num));
-	    }
-	    //   b. if the element is an operator pop 2 elements from the stack, 
-	    //      apply the operator on it and push the result back to the stack
-	    else{
-	        float x1 = stof(mystack.top());
-	        mystack.pop();
-	        float x2 = stof(mystack.top());
-	        mystack.pop();
-	        float x3 = eval(x2,x1,y[i]);
-	        mystack.push(to_string(x3));
-	        cout << x2 << " " << x1 << " "<< y[i] << " =  " << x3 << endl;
-	    }    
-	}
-	//3. return the value from the top of the stack (i.e. the final answer)	
-	return mystack.top();
+    //1. Create a stack (e.g. of type float) to store the operands
+    stack <string> mystack;
+    //2. Scan the postfix expression from left to right for every element
+    for (int i = 0; i < y.size(); i++){
+    //   a. if the element is an operand push it to the stack
+        if (not isoperator(y[i])){
+            mystack.push(y[i]);
+        }
+        else if(y[i]=="^"){
+            float num = stof(mystack.top())*-1;
+            mystack.pop();
+            mystack.push(to_string(num));
+        }
+        else if(y[i]=="@"){
+            float num = stof(mystack.top())-1;
+            mystack.pop();
+            mystack.push(to_string(num));
+        }
+        else if(y[i]=="#"){
+            float num = pow(stof(mystack.top()), 2);
+            mystack.pop();
+            mystack.push(to_string(num));
+        }
+        else if(y[i]=="!"){
+            float num = stof(mystack.top())+1;
+            mystack.pop();
+            mystack.push(to_string(num));
+        }
+        //   b. if the element is an operator pop 2 elements from the stack, 
+        //      apply the operator on it and push the result back to the stack
+        else{
+            float x1 = stof(mystack.top());
+            mystack.pop();
+            float x2 = stof(mystack.top());
+            mystack.pop();
+            float x3 = eval(x2,x1,y[i]);
+            mystack.push(to_string(x3));
+            cout << x2 << " " << x1 << " "<< y[i] << " =  " << x3 << endl;
+        }    
+    }
+    //3. return the value from the top of the stack (i.e. the final answer) 
+    return mystack.top();
 }
 
 
@@ -297,7 +334,7 @@ vector<string> tokenize(string x){
 
     vector <string> y;
     cout << "start of tokenization" << x << endl;
-    
+    cout<< "size of string for tokenization: "<<x.size()<<endl;
     int i=0;
     while(i<x.size()){
     
@@ -315,12 +352,14 @@ vector<string> tokenize(string x){
         
         else if (isdigit(x[i])){//add digits to number
             string number;
-            while (isdigit(x[i]) or x[i] == '.' ){
+            while (isdigit(x[i]) or x[i] == '.' ) {
                 number += x[i];
                 i++;
             }
+            cout<<"FULL NUMBER IS--"<<number<<"--"<<endl;
             //cout << "number is " << number << endl;
             y.push_back(number);
+            
         }
         
         else if (isalpha(x[i])){//add letters to variable
@@ -331,11 +370,14 @@ vector<string> tokenize(string x){
             }
             //cout << "variable is " << variable << endl;
             y.push_back(variable);
+
         }
         
         else {// (, ), binary operators
             //cout << "binary operator" << x[i] << endl;
+            cout<<"PUSHING: --"<< x[i] << "--" << endl;
             y.push_back(string(1, x[i]));
+    
             i++;
         }
     }    
@@ -350,62 +392,62 @@ vector<string> tokenize(string x){
 
 vector<string> infix2postfix(vector<string> &x){
 
-	stack <string> mystack;
-	vector<string> y;
-	
-	cout << "post fix begins" << endl;
+    stack <string> mystack;
+    vector<string> y;
+    
+    cout << "post fix begins" << endl;
 
-	//1.	Push “(“onto Stack, and add “)” to the end of X.
-	x.push_back(")");
-	mystack.push("(");
+    //1.    Push “(“onto Stack, and add “)” to the end of X.
+    x.push_back(")");
+    mystack.push("(");
 
-	//2.	Scan X from left to right and repeat Step 3 to 6 for each element of X 
-	//until the Stack is empty.
-	int i=0;
-	while(!mystack.empty())
-	{	
-		string str = x[i++];
-		//3.	If an operand is encountered, add it to Y.
-		if (not isoperator(str) and str!="(" and str!=")"){
-		    //cout << "push operand to vector: " << str << endl;
-			y.push_back(str);
-		}
-		//4.	If a left parenthesis is encountered, push it onto Stack.
-		else if(str=="("){
-		    //cout << "push ( to vector: " << str << endl;
-			mystack.push(str);
-		}
-		//5.	If an operator is encountered, then: 
-		else if(isoperator(str))
-	    {	//a.	Repeatedly pop from Stack and add to Y each operator (on the top of Stack) 
-			//which has the same precedence as or higher precedence than operator.
-			while (isoperator(mystack.top()) and isleq(str,mystack.top()))
-			{
-			    //cout << "push operator to vector: " << mystack.top() << endl;
-				y.push_back(mystack.top());
-				mystack.pop();
-			}
-			//b.	Add operator to Stack.
-			mystack.push(str);
-		}
-		//.6.	If a right parenthesis is encountered, then: 
-		else if(str==")")
-		{
-			//a.	Repeatedly pop from Stack and add to Y each operator 
-			//(on the top of Stack) until a left parenthesis is encountered.
-			while(mystack.top()!="(")
-			{
-			    //cout << "push ) to vector: "  << mystack.top() << endl;
-				y.push_back(mystack.top());
-				mystack.pop();
-			}
-			//b.	Remove the left Parenthesis.
-			mystack.pop();
-		}
-	}
-	
-	cout << "in post fix" << endl;
-	for (int i=0; i<y.size(); i++){
+    //2.    Scan X from left to right and repeat Step 3 to 6 for each element of X 
+    //until the Stack is empty.
+    int i=0;
+    while(!mystack.empty())
+    {   
+        string str = x[i++];
+        //3.    If an operand is encountered, add it to Y.
+        if (not isoperator(str) and str!="(" and str!=")"){
+            //cout << "push operand to vector: " << str << endl;
+            y.push_back(str);
+        }
+        //4.    If a left parenthesis is encountered, push it onto Stack.
+        else if(str=="("){
+            //cout << "push ( to vector: " << str << endl;
+            mystack.push(str);
+        }
+        //5.    If an operator is encountered, then: 
+        else if(isoperator(str))
+        {   //a.    Repeatedly pop from Stack and add to Y each operator (on the top of Stack) 
+            //which has the same precedence as or higher precedence than operator.
+            while (isoperator(mystack.top()) and isleq(str,mystack.top()))
+            {
+                //cout << "push operator to vector: " << mystack.top() << endl;
+                y.push_back(mystack.top());
+                mystack.pop();
+            }
+            //b.    Add operator to Stack.
+            mystack.push(str);
+        }
+        //.6.   If a right parenthesis is encountered, then: 
+        else if(str==")")
+        {
+            //a.    Repeatedly pop from Stack and add to Y each operator 
+            //(on the top of Stack) until a left parenthesis is encountered.
+            while(mystack.top()!="(")
+            {
+                //cout << "push ) to vector: "  << mystack.top() << endl;
+                y.push_back(mystack.top());
+                mystack.pop();
+            }
+            //b.    Remove the left Parenthesis.
+            mystack.pop();
+        }
+    }
+    
+    cout << "in post fix" << endl;
+    for (int i=0; i<y.size(); i++){
         cout << y[i] << " ";
     }
     cout << endl;
@@ -418,6 +460,6 @@ bool isleq(string opA, string opB){
 int convertOpToInt (string str){
     if (str=="+" || str=="-") return 1;
     if (str=="*" || str=="/" || str=="%"|| str=="$") return 2;
-    if (str=="^") return 3;
+    if (str=="^" || str=="!"|| str=="#"|| str=="@") return 3;
     return 0;
 }
